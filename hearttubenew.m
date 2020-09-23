@@ -16,8 +16,9 @@ R2 = 0.1;                           % radius of inner wall
 R1 = R2+diameter;                   % radius of outer wall
 percont = 0.8;    %percent contraction for applied force peristalsis
 
-radius = .02;
+radius = 0.01;
 gamma = 0 : asin(ds/radius) : 2*pi;
+xpos=[0.25,0.5,0.75];
 
 Nstraight = 2*ceil(Lt/ds);          % number of points along each straight section
 Ncurve = 2*ceil(pi*R1/ds);          % number of points along each curved section
@@ -232,7 +233,7 @@ for i = ceil(Ncurve/2)+ceil(Nstraight/2)+1:Ncurve+ceil(Nstraight/2)
 end
 
 %right outer curved part of racetrack 
-for i=Ncurve+ceil(Nstraight/2)+1:Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2),
+for i=Ncurve+ceil(Nstraight/2)+1:Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2)
     theta=(i-(Ncurve+ceil(Nstraight/2))-1)*dtheta-pi/2;
     y_race(1,i) = centery+R1*sin(theta);
     x_race(1,i) = Lt/2+R1*cos(theta);
@@ -245,6 +246,7 @@ for i = Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2)+1:Ncurve+ceil(Ncurve/2)+Nstraigh
     theta1 = pi/2+(i-(Ncurve+ceil(Ncurve/2)+Nstraight)-1)*dtheta;
     y_race(1,i) = centery+R1+0.05*(-cos(theta))*cos(theta1);
     x_race(1,i) = centerx2-(i-(Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2))-1)*ds;
+    plot(x_race(1,i),y_race(1,i),'y.')
     fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
 end
 
@@ -271,7 +273,6 @@ end
 % fprintf(vertex_fid, '%d\n', Nrace);
 
 %straight outer section on the top -- new tube top
-%for i = Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2)+1:Ncurve+ceil(Ncurve/2)+Nstraight
  for i = 2*Ncurve+Nstraight+1:2*Ncurve+Nstraight+ceil(Nstraight/2)
     theta=(i-(2*Ncurve+Nstraight+ceil(Ncurve/2))-1)*dtheta-pi/2;
     theta1 = pi/2+(i-(2*Ncurve+Nstraight+ceil(Nstraight/2))-1)*dtheta;
@@ -281,113 +282,168 @@ end
 end
 
 %straight inner section on the top -- new tube bottom
-for i = ceil(Ncurve/2)+1:ceil(Ncurve/2)+ceil(Nstraight/2)
+for i = 2*Ncurve+Nstraight+ceil(Nstraight/2)+1:2*Ncurve+2*Nstraight
     theta2 = (i-1)*dtheta-pi/2;
     theta3 = pi/2+(i-(ceil(Ncurve/2)+ceil(Nstraight/2))-1)*dtheta;
     y_race(1,i) = centery+R2-0.05*(-cos(theta2))*cos(theta3)+0.05;
-    x_race(1,i) = centerx2-(i-ceil(Ncurve/2)-1)*ds;
+    x_race(1,i) = centerx2+(i-(2*Ncurve+2*Nstraight)-1)*ds;
     fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
 end
 
 % ADDING OBSTACLES 
 
 % CENTER TOP OBSTACLE
-i1=(2*Ncurve+Nstraight+ceil(Nstraight/2))-(2*Ncurve+Nstraight+1);
-i2=(Ncurve+ceil(Ncurve/2)+Nstraight)-(Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2)+1);
-x1Center = 0;
+
+i2= ceil(((Ncurve+ceil(Ncurve/2)+Nstraight)-(Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2)+1))*xpos(2))+(Ncurve+ceil(Ncurve/2)+ceil(Nstraight/2)+1);
+thetatop=(i2-(Ncurve+ceil(Nstraight/2))-1)*dtheta-pi/2;
+theta1top = pi/2+(i2-(Ncurve+ceil(Ncurve/2)+Nstraight)-1)*dtheta;
+ytop = centery+R1+0.05*(-cos(thetatop))*cos(theta1top);
+
+i1=ceil(((2*Ncurve+Nstraight+ceil(Nstraight/2))-(2*Ncurve+Nstraight+1))/2)+(2*Ncurve+Nstraight+1);
 thetabot=(i1-(2*Ncurve+Nstraight+ceil(Ncurve/2))-1)*dtheta-pi/2;
 theta1bot = pi/2+(i1-(2*Ncurve+Nstraight+ceil(Nstraight/2))-1)*dtheta;
 ybot = centery+R1+0.05*(-cos(thetabot))*cos(theta1bot)-0.05;
-ytop = 
-%x1Center = centerx2-(i-(2*Ncurve+Nstraight)-1)*ds;
+
+splitDia=ytop-ybot;
+
+x1Center = 0-(0.5*Let)+Let*xpos(2);
 %y1Center = .21;
+y1Center = ybot+0.5*splitDia;
 x1 = radius * cos(gamma) + x1Center;
 y1 = radius * sin(gamma) + y1Center;
-plot(x1,y1,'k.');
-axis square;
-%xlim([0 20]);
-%ylim([0 20]);
 
-for i = 1:length(gamma)
-    fprintf(vertex_fid, '%1.16e %1.16e\n', x1(1,i), y1(1,i));
+for i = 2*Ncurve+2*Nstraight+1:2*Ncurve+2*Nstraight+length(gamma)
+    j=i-(2*Ncurve+2*Nstraight);
+    x_race(1,i)=x1(1,j);
+    y_race(1,i)=y1(1,j);
+    fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
 end
 
-% CENTER BOTTOM OBSTACLE
-x1Center = 0;
-y1Center = .09;
-x1 = radius * cos(gamma) + x1Center;
-y1 = radius * sin(gamma) + y1Center;
-plot(x1,y1,'k.');
-axis square;
-%xlim([0 20]);
-%ylim([0 20]);
-
-for i = 1:length(gamma)
-    fprintf(vertex_fid, '%1.16e %1.16e\n', x1(1,i), y1(1,i));
-end
+clear i1 
 
 % TOP RIGHT OBSTACLE
-x2Center = 0.1;
-y2Center = .20;
+
+i1=ceil(((2*Ncurve+Nstraight+ceil(Nstraight/2))-(2*Ncurve+Nstraight+1))*xpos(1))+(2*Ncurve+Nstraight+1);
+thetabot=(i1-(2*Ncurve+Nstraight+ceil(Ncurve/2))-1)*dtheta-pi/2;
+theta1bot = pi/2+(i1-(2*Ncurve+Nstraight+ceil(Nstraight/2))-1)*dtheta;
+ybot = centery+R1+0.05*(-cos(thetabot))*cos(theta1bot)-0.05;
+
+%x2Center = 0.1;
+x2Center = 0-(0.5*Let)+Let*xpos(1);
+%y2Center = .20;
+y2Center = ybot+0.5*splitDia;
+
 x2 = radius * cos(gamma) + x2Center;
 y2 = radius * sin(gamma) + y2Center;
-plot(x2,y2,'k.');
-%plot(x,y,.1,.18,'lineWidth',3);
-axis square;
-%xlim([0 20]);
-%ylim([0 20]);
-grid on;
 
-for i = 1:length(gamma)
-    fprintf(vertex_fid, '%1.16e %1.16e\n', x2(1,i), y2(1,i));
+for i = 2*Ncurve+2*Nstraight+length(gamma)+1:2*Ncurve+2*Nstraight+2*length(gamma)
+    j=i-(2*Ncurve+2*Nstraight+length(gamma));
+    x_race(1,i)=x2(1,j);
+    y_race(1,i)=y2(1,j);
+    fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
 end
 
-% BOTTOM RIGHT OBSTACLE
-x3Center = 0.1;
-y3Center = .10;
-x3 = radius * cos(gamma) + x3Center;
-y3 = radius * sin(gamma) + y3Center;
-plot(x3,y3,'k.');
-%plot(x,y,.1,.12,'lineWidth',3);
-axis square;
-%xlim([0 20]);
-%ylim([0 20]);
-%grid on;
-
-for i = 1:length(gamma)
-    fprintf(vertex_fid, '%1.16e %1.16e\n', x3(1,i), y3(1,i));
-end
+clear i1 
 
 % TOP LEFT OBSTACLE
-x4Center = -0.1;
-y4Center = .20;
-x4 = radius * cos(gamma) + x4Center;
-y4 = radius * sin(gamma) + y4Center;
-plot(x4,y4,'k.');
-%plot(x,y,-0.1,.18,'lineWidth',3);
-axis square;
-%xlim([0 20]);
-%ylim([0 20]);
-grid on;
 
-for i = 1:length(gamma)
-    fprintf(vertex_fid, '%1.16e %1.16e\n', x4(1,i), y4(1,i));
+i1=ceil(((2*Ncurve+Nstraight+ceil(Nstraight/2))-(2*Ncurve+Nstraight+1))*0.75)+(2*Ncurve+Nstraight+1);
+thetabot=(i1-(2*Ncurve+Nstraight+ceil(Ncurve/2))-1)*dtheta-pi/2;
+theta1bot = pi/2+(i1-(2*Ncurve+Nstraight+ceil(Nstraight/2))-1)*dtheta;
+ybot = centery+R1+0.05*(-cos(thetabot))*cos(theta1bot)-0.05;
+
+%x3Center = -0.1;
+%y3Center = .20;
+x3Center = 0-(0.5*Let)+Let*xpos(3);
+y3Center = ybot+0.5*splitDia;
+
+x3 = radius * cos(gamma) + x3Center;
+y3 = radius * sin(gamma) + y3Center;
+
+
+for i = 2*Ncurve+2*Nstraight+2*length(gamma)+1:2*Ncurve+2*Nstraight+3*length(gamma)
+    j=i-(2*Ncurve+2*Nstraight+2*length(gamma));
+    x_race(1,i)=x3(1,j);
+    y_race(1,i)=y3(1,j);
+    fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
 end
 
-% BOTTOM LEFT OBSTACLE
-x5Center = -0.1;
-y5Center = .10;
+clear ybot ytop splitDia i2 i1
+
+% CENTER BOTTOM OBSTACLE
+
+i2 = ceil(((2*Ncurve+2*Nstraight)-(2*Ncurve+Nstraight+ceil(Nstraight/2)+1))/2)+(2*Ncurve+Nstraight+ceil(Nstraight/2)+1);
+theta2top = (i2-1)*dtheta-pi/2;
+theta3top = pi/2+(i2-(ceil(Ncurve/2)+ceil(Nstraight/2))-1)*dtheta;
+ytop = centery+R2-0.05*(-cos(theta2top))*cos(theta3top)+0.05;
+
+%i1 = ceil(Ncurve/2)+1:ceil(Ncurve/2)+ceil(Nstraight/2)
+i1 = ceil(((ceil(Ncurve/2)+ceil(Nstraight/2))-(ceil(Ncurve/2)+1))*xpos(2))+(ceil(Ncurve/2)+1);
+thetabot = (i1-1)*dtheta-pi/2;
+theta1bot = pi/2+(i1-(ceil(Ncurve/2)+ceil(Nstraight/2))-1)*dtheta;
+ybot = centery+R2-0.05*(-cos(thetabot))*cos(theta1bot);
+
+splitDia=ytop-ybot;
+
+%x4Center = 0;
+%y4Center = .09;
+x4Center = 0-(0.5*Let)+Let*xpos(2);
+y4Center = ybot+0.5*splitDia;
+
+x4 = radius * cos(gamma) + x4Center;
+y4 = radius * sin(gamma) + y4Center;
+
+
+for i = 2*Ncurve+2*Nstraight+3*length(gamma)+1:2*Ncurve+2*Nstraight+4*length(gamma)
+    j=i-(2*Ncurve+2*Nstraight+3*length(gamma));
+    x_race(1,i)=x4(1,j);
+    y_race(1,i)=y4(1,j);
+    fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
+end
+
+
+% BOTTOM RIGHT OBSTACLE
+i1 = ceil(((ceil(Ncurve/2)+ceil(Nstraight/2))-(ceil(Ncurve/2)+1))*xpos(3))+(ceil(Ncurve/2)+1);
+thetabot = (i1-1)*dtheta-pi/2;
+theta1bot = pi/2+(i1-(ceil(Ncurve/2)+ceil(Nstraight/2))-1)*dtheta;
+ybot = centery+R2-0.05*(-cos(thetabot))*cos(theta1bot);
+
+x5Center = 0-(0.5*Let)+Let*xpos(1);
+y5Center = ybot+0.5*splitDia;
+%x5Center = 0.1;
+%y5Center = .10;
 x5 = radius * cos(gamma) + x5Center;
 y5 = radius * sin(gamma) + y5Center;
-plot(x5,y5,'k.');
-%plot(x,y,-0.1,.12,'lineWidth',3);
-axis square;
-%xlim([0 20]);
-%ylim([0 20]);
-grid on;
 
-for i = 1:length(gamma)
-    fprintf(vertex_fid, '%1.16e %1.16e\n', x5(1,i), y5(1,i));
+
+for i = 2*Ncurve+2*Nstraight+4*length(gamma)+1:2*Ncurve+2*Nstraight+5*length(gamma)
+    j=i-(2*Ncurve+2*Nstraight+4*length(gamma));
+    x_race(1,i)=x5(1,j);
+    y_race(1,i)=y5(1,j);
+    fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
+end
+
+clear i1
+
+% BOTTOM LEFT OBSTACLE
+i1 = ceil(((ceil(Ncurve/2)+ceil(Nstraight/2))-(ceil(Ncurve/2)+1))*xpos(3))+(ceil(Ncurve/2)+1);
+thetabot = (i1-1)*dtheta-pi/2;
+theta1bot = pi/2+(i1-(ceil(Ncurve/2)+ceil(Nstraight/2))-1)*dtheta;
+ybot = centery+R2-0.05*(-cos(thetabot))*cos(theta1bot);
+
+x6Center = 0-(0.5*Let)+Let*xpos(3);
+y6Center = ybot+0.5*splitDia;
+%x6Center = -0.1;
+%y6Center = .10;
+x6 = radius * cos(gamma) + x6Center;
+y6 = radius * sin(gamma) + y6Center;
+
+
+for i = 2*Ncurve+2*Nstraight+5*length(gamma)+1:2*Ncurve+2*Nstraight+6*length(gamma)
+    j=i-(2*Ncurve+2*Nstraight+5*length(gamma));
+    x_race(1,i)=x6(1,j);
+    y_race(1,i)=y6(1,j);
+    fprintf(vertex_fid, '%1.16e %1.16e\n', x_race(1,i), y_race(1,i));
 end
 
 fclose(vertex_fid);
@@ -503,19 +559,19 @@ target_fid = fopen([mesh_name 'tube_' num2str(N) '.target'], 'w');
 
 fprintf(target_fid, '%d\n', 4*Nend);
 
-for i = 0:Nend-1,
+for i = 0:Nend-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
-for i = ceil(Nstraight/2)-Nend:ceil(Nstraight/2)-1,
+for i = ceil(Nstraight/2)-Nend:ceil(Nstraight/2)-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
-for i = ceil(Nstraight/2):ceil(Nstraight/2)+Nend-1,
+for i = ceil(Nstraight/2):ceil(Nstraight/2)+Nend-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
-for i = Nstraight-Nend:Nstraight-1,
+for i = Nstraight-Nend:Nstraight-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
@@ -549,7 +605,7 @@ fclose(target_fid);
 target_fid = fopen(['pperi_top_' num2str(N) '.target'], 'w');
 fprintf(target_fid, '%d\n', NLap);
 
-for i = 0:NLap-1,
+for i = 0:NLap-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
@@ -559,7 +615,7 @@ fclose(target_fid);
 target_fid = fopen(['pperi_bot_' num2str(N) '.target'], 'w');
 fprintf(target_fid, '%d\n', NLap);
 
-for i = 0:NLap-1,
+for i = 0:NLap-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
@@ -570,7 +626,7 @@ target_fid = fopen([mesh_name 'race_' num2str(N) '.target'], 'w');
 
 fprintf(target_fid, '%d\n', Nrace);
 
-for i = 0:Nrace-1,
+for i = 0:Nrace-1
     fprintf(target_fid, '%d %1.16e\n', i, kappa_target*ds/(ds^2));
 end
 
