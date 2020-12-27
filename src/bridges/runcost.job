@@ -13,10 +13,10 @@ set -x
 sim=165
 
 # Set track
-track=\'branch\'
+track=\'branchandobstacles\'
 
 # Set path 
-WD=/pylon5/bi561lp/lwaldrop/peri-gPC-git
+WD=/pylon5/bi561lp/brikim8/peri-gPC-git
 MatWD=\'$WD\'
 
 # move to working directory

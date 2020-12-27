@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -p RM-shared
-#SBATCH -t 12:00:00
+#SBATCH -p RM
+#SBATCH -t 24:00:00
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=16
 #SBATCH --mail-type=ALL
@@ -12,7 +12,7 @@ set -x
 i=119
 
 # Set path 
-WD=/pylon5/bi561lp/lwaldrop/peri-gPC-git
+WD=/pylon5/bi561lp/brikim8/peri-gPC-git 
 
 # move to working directory
 cd "${WD}"/bin
